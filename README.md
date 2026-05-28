@@ -1,0 +1,2 @@
+Multiplayer concurrent game architecture demonstrating modern .NET concurrency patterns:
+async/await, Channels, TPL Dataflow, Rx, immutable snapshots, lock-free messaging, actor-style game rooms, cancellation orchestration, and resilient networking.
