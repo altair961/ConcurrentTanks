@@ -25,10 +25,21 @@ namespace ConcurrentTanks.Client
             _window.Run();
         }
 
-        private static void OnLoad() { }
+        private static void OnLoad()
+        {
+            IInputContext input = _window.CreateInput();
+            for (int i = 0; i < input.Keyboards.Count; i++)
+            input.Keyboards[i].KeyDown += KeyDown;
+        }
 
         private static void OnUpdate(double deltaTime) { }
 
         private static void OnRender(double deltaTime) { }
+
+        private static void KeyDown(IKeyboard keyboard, Key key, int keyCode)
+        {
+            if (key == Key.Escape)
+                _window.Close();
+        }
     }
 }
