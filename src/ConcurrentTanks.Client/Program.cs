@@ -10,6 +10,8 @@ namespace ConcurrentTanks.Client
     {
         private static IWindow _window;
         private static GL _gl;
+        private static uint _vao;
+        private static uint _vbo;
 
         static void Main(string[] args)
         {
@@ -28,18 +30,36 @@ namespace ConcurrentTanks.Client
             _window.Run();
         }
 
-        private static void OnLoad()
+        private static unsafe void OnLoad()
         {
             IInputContext input = _window.CreateInput();
             for (int i = 0; i < input.Keyboards.Count; i++)
             input.Keyboards[i].KeyDown += KeyDown;
             _gl = _window.CreateOpenGL();
             _gl.ClearColor(Color.CornflowerBlue);
+
+            _vao = _gl.GenVertexArray();
+            _gl.BindVertexArray(_vao);
+
+            float[] vertices =
+            {
+                0.5f,  0.5f, 0.0f,
+                0.5f, -0.5f, 0.0f,
+                -0.5f, -0.5f, 0.0f,
+                -0.5f,  0.5f, 0.0f
+            };
+            
+            _vbo = _gl.GenBuffer();
+            _gl.BindBuffer(BufferTargetARB.ArrayBuffer, _vbo);
+
+            fixed (float* buf = vertices)
+                _gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint) (vertices.Length * sizeof(float)),
+                    buf, BufferUsageARB.StaticDraw);
         }
 
         private static void OnUpdate(double deltaTime) { }
 
-        private static void OnRender(double deltaTime)
+        private static unsafe void OnRender(double deltaTime)
         {
             _gl.Clear(ClearBufferMask.ColorBufferBit);
         }
