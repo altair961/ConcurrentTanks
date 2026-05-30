@@ -21,6 +21,10 @@ namespace ConcurrentTanks.Client
         private static float _tankY = 450f;
         private static Matrix4x4 _model;
         private static int _modelLocation;
+        private static bool _moveLeft;
+        private static bool _moveRight;
+        private static bool _moveUp;
+        private static bool _moveDown;
 
         static void Main(string[] args)
         {
@@ -44,7 +48,11 @@ namespace ConcurrentTanks.Client
         {
             IInputContext input = _window.CreateInput();
             for (int i = 0; i < input.Keyboards.Count; i++)
-            input.Keyboards[i].KeyDown += KeyDown;
+            {
+                input.Keyboards[i].KeyDown += KeyDown;
+                input.Keyboards[i].KeyUp += KeyUp;
+            }
+                
             _gl = _window.CreateOpenGL();
 
             _projection =
@@ -168,12 +176,26 @@ void main()
             _gl.Viewport(_window.FramebufferSize);
         }
 
-        private static void OnUpdate(double deltaTime) { }
+
+        private static void OnUpdate(double deltaTime)
+        {
+                float speed = 200f;
+
+                if (_moveLeft)
+                    _tankX -= speed * (float)deltaTime;
+
+                if (_moveRight)
+                    _tankX += speed * (float)deltaTime;
+
+                if (_moveUp)
+                    _tankY -= speed * (float)deltaTime;
+
+                if (_moveDown)
+                    _tankY += speed * (float)deltaTime;
+        }
 
         private static unsafe void OnRender(double deltaTime)
-        {
-
-                    
+        {                   
             _gl.Clear(ClearBufferMask.ColorBufferBit);
 
             _gl.UseProgram(_program);
@@ -215,6 +237,33 @@ void main()
         {
             if (key == Key.Escape)
                 _window.Close();
+
+            if (key == Key.W)
+                _moveUp = true;
+
+            if (key == Key.S)
+                _moveDown = true;
+
+            if (key == Key.A)
+                _moveLeft = true;
+
+            if (key == Key.D)
+                _moveRight = true;
+        }
+
+        private static void KeyUp(IKeyboard keyboard, Key key, int keyCode)
+        {    
+            if (key == Key.W)
+                _moveUp = false;
+
+            if (key == Key.S)
+                _moveDown = false;
+
+            if (key == Key.A)
+                _moveLeft = false;
+
+            if (key == Key.D)
+                _moveRight = false;
         }
     }
 }
