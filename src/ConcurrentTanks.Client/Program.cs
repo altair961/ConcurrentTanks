@@ -12,6 +12,7 @@ namespace ConcurrentTanks.Client
         private static GL _gl;
         private static uint _vao;
         private static uint _vbo;
+        private static uint _ebo;
 
         static void Main(string[] args)
         {
@@ -54,6 +55,19 @@ namespace ConcurrentTanks.Client
 
             fixed (float* buf = vertices)
                 _gl.BufferData(BufferTargetARB.ArrayBuffer, (nuint) (vertices.Length * sizeof(float)),
+                    buf, BufferUsageARB.StaticDraw);
+
+            uint[] indices =
+            {
+                0, 1, 3,
+                1, 2, 3
+            };
+
+            _ebo = _gl.GenBuffer();
+            _gl.BindBuffer(BufferTargetARB.ElementArrayBuffer, _ebo);
+            
+            fixed (uint* buf = indices)
+                _gl.BufferData(BufferTargetARB.ElementArrayBuffer, (nuint) (indices.Length * sizeof(uint)), 
                     buf, BufferUsageARB.StaticDraw);
         }
 
