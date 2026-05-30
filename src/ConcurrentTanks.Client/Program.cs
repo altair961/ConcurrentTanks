@@ -3,6 +3,7 @@ using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using Silk.NET.OpenGL;
 using System.Drawing;
+using System.Numerics;
 
 namespace ConcurrentTanks.Client
 {
@@ -14,6 +15,8 @@ namespace ConcurrentTanks.Client
         private static uint _vbo;
         private static uint _ebo;
         private static uint _program;
+        private static Matrix4x4 _projection;
+        private static int _projectionLocation;
 
         static void Main(string[] args)
         {
@@ -22,7 +25,8 @@ namespace ConcurrentTanks.Client
             WindowOptions options = WindowOptions.Default with
             {
                 Size = new Vector2D<int>(900, 900),
-                Title = "My first Silk.NET application!"
+                Title = "Concurrent Tanks",
+                WindowBorder = WindowBorder.Fixed
             };
 
             _window = Window.Create(options);
@@ -38,6 +42,16 @@ namespace ConcurrentTanks.Client
             for (int i = 0; i < input.Keyboards.Count; i++)
             input.Keyboards[i].KeyDown += KeyDown;
             _gl = _window.CreateOpenGL();
+
+            _projection =
+                Matrix4x4.CreateOrthographicOffCenter(
+                    0f,     // left
+                    900f,   // right
+                    900f,   // bottom
+                    0f,     // top
+                    -1f,
+                    1f);
+
             _gl.ClearColor(Color.CornflowerBlue);
 
             _vao = _gl.GenVertexArray();
@@ -45,10 +59,10 @@ namespace ConcurrentTanks.Client
 
             float[] vertices =
             {
-                0.5f,  0.5f, 0.0f,
-                0.5f, -0.5f, 0.0f,
-                -0.5f, -0.5f, 0.0f,
-                -0.5f,  0.5f, 0.0f
+                400f, 435f, 0f, // top left
+                465f, 435f, 0f, // top right
+                465f, 495f, 0f, // bottom right
+                400f, 495f, 0f  // bottom left
             };
             
             _vbo = _gl.GenBuffer();
@@ -76,9 +90,13 @@ namespace ConcurrentTanks.Client
 
 layout (location = 0) in vec3 aPosition;
 
+uniform mat4 projection;
+
 void main()
 {
-    gl_Position = vec4(aPosition, 1.0);
+    gl_Position =
+        projection *
+        vec4(aPosition, 1.0);
 }";
 
         const string fragmentCode = @"
@@ -88,7 +106,7 @@ out vec4 out_color;
 
 void main()
 {
-    out_color = vec4(1.0, 0.5, 0.2, 1.0);
+    out_color = vec4(1.0, 1.0, 1.0, 1.0);
 }";
 
             uint vertexShader = _gl.CreateShader(ShaderType.VertexShader);
@@ -116,6 +134,11 @@ void main()
 
             _gl.LinkProgram(_program);
 
+            int projectionLocation =
+                _gl.GetUniformLocation(
+                    _program,
+                    "projection");
+                    
             _gl.GetProgram(_program, ProgramPropertyARB.LinkStatus, out int lStatus);
             if (lStatus != (int) GLEnum.True)
                 throw new Exception("Program failed to link: " + _gl.GetProgramInfoLog(_program));
@@ -141,9 +164,25 @@ void main()
         private static unsafe void OnRender(double deltaTime)
         {
             _gl.Clear(ClearBufferMask.ColorBufferBit);
-            _gl.BindVertexArray(_vao);
+
             _gl.UseProgram(_program);
-            _gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, (void*) 0);
+
+            fixed (float* p = &_projection.M11)
+            {
+                _gl.UniformMatrix4(
+                    _projectionLocation,
+                    1,
+                    false,
+                    p);
+            }
+
+            _gl.BindVertexArray(_vao);
+
+            _gl.DrawElements(
+                PrimitiveType.Triangles,
+                6,
+                DrawElementsType.UnsignedInt,
+                (void*)0);
         }
 
         private static void KeyDown(IKeyboard keyboard, Key key, int keyCode)
