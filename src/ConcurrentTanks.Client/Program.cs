@@ -17,6 +17,10 @@ namespace ConcurrentTanks.Client
         private static uint _program;
         private static Matrix4x4 _projection;
         private static int _projectionLocation;
+        private static float _tankX = 450f;
+        private static float _tankY = 450f;
+        private static Matrix4x4 _model;
+        private static int _modelLocation;
 
         static void Main(string[] args)
         {
@@ -59,10 +63,10 @@ namespace ConcurrentTanks.Client
 
             float[] vertices =
             {
-                400f, 435f, 0f, // top left
-                465f, 435f, 0f, // top right
-                465f, 495f, 0f, // bottom right
-                400f, 495f, 0f  // bottom left
+                -30f, 30f, 0f, // bottom left
+                30f, 30f, 0f, // bottom right
+                30f, -30f, 0f, // top right
+                -30f, -30f, 0f // top left
             };
             
             _vbo = _gl.GenBuffer();
@@ -91,11 +95,13 @@ namespace ConcurrentTanks.Client
 layout (location = 0) in vec3 aPosition;
 
 uniform mat4 projection;
+uniform mat4 model;
 
 void main()
 {
     gl_Position =
         projection *
+        model *
         vec4(aPosition, 1.0);
 }";
 
@@ -134,11 +140,14 @@ void main()
 
             _gl.LinkProgram(_program);
 
-            int projectionLocation =
+            _projectionLocation =
                 _gl.GetUniformLocation(
                     _program,
                     "projection");
                     
+            _modelLocation =
+                _gl.GetUniformLocation(_program, "model");
+
             _gl.GetProgram(_program, ProgramPropertyARB.LinkStatus, out int lStatus);
             if (lStatus != (int) GLEnum.True)
                 throw new Exception("Program failed to link: " + _gl.GetProgramInfoLog(_program));
@@ -163,6 +172,8 @@ void main()
 
         private static unsafe void OnRender(double deltaTime)
         {
+
+                    
             _gl.Clear(ClearBufferMask.ColorBufferBit);
 
             _gl.UseProgram(_program);
@@ -171,6 +182,21 @@ void main()
             {
                 _gl.UniformMatrix4(
                     _projectionLocation,
+                    1,
+                    false,
+                    p);
+            }
+
+            _model =
+                Matrix4x4.CreateTranslation(
+                    _tankX,
+                    _tankY,
+                    0f);
+
+            fixed (float* p = &_model.M11)
+            {
+                _gl.UniformMatrix4(
+                    _modelLocation,
                     1,
                     false,
                     p);
