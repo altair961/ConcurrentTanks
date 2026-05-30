@@ -21,7 +21,7 @@ namespace ConcurrentTanks.Client
 
             WindowOptions options = WindowOptions.Default with
             {
-                Size = new Vector2D<int>(800, 600),
+                Size = new Vector2D<int>(900, 900),
                 Title = "My first Silk.NET application!"
             };
 
