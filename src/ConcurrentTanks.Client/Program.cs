@@ -25,6 +25,7 @@ namespace ConcurrentTanks.Client
         private static bool _moveRight;
         private static bool _moveUp;
         private static bool _moveDown;
+        private static int _segmentIndexLocation;
 
         static void Main(string[] args)
         {
@@ -116,11 +117,20 @@ void main()
         const string fragmentCode = @"
 #version 330 core
 
+uniform int segmentIndex;
+
 out vec4 out_color;
 
 void main()
-{
-    out_color = vec4(1.0, 1.0, 1.0, 1.0);
+{   
+    if (segmentIndex % 2 == 0)
+    {
+        out_color = vec4(0.5, 0.5, 0.5, 1.0);
+    }
+    else
+    {
+        out_color = vec4(1.0, 1.0, 1.0, 1.0);
+    }
 }";
 
             uint vertexShader = _gl.CreateShader(ShaderType.VertexShader);
@@ -155,6 +165,11 @@ void main()
                     
             _modelLocation =
                 _gl.GetUniformLocation(_program, "model");
+
+            _segmentIndexLocation =
+                _gl.GetUniformLocation(
+                    _program,
+                    "segmentIndex");
 
             _gl.GetProgram(_program, ProgramPropertyARB.LinkStatus, out int lStatus);
             if (lStatus != (int) GLEnum.True)
@@ -209,28 +224,35 @@ void main()
                     p);
             }
 
-            _model =
-                Matrix4x4.CreateTranslation(
-                    _tankX,
-                    _tankY,
-                    0f);
-
-            fixed (float* p = &_model.M11)
-            {
-                _gl.UniformMatrix4(
-                    _modelLocation,
-                    1,
-                    false,
-                    p);
-            }
-
             _gl.BindVertexArray(_vao);
 
-            _gl.DrawElements(
-                PrimitiveType.Triangles,
-                6,
-                DrawElementsType.UnsignedInt,
-                (void*)0);
+            for (int segment = 0; segment < 10; segment++)
+            {
+                _model =
+                    Matrix4x4.CreateTranslation(
+                        _tankX,
+                        _tankY + segment * 4f,
+                        0f);
+                
+                fixed (float* p = &_model.M11)
+                {
+                    _gl.UniformMatrix4(
+                        _modelLocation,
+                        1,
+                        false,
+                        p);
+                }
+
+		_gl.Uniform1(
+		    _segmentIndexLocation,
+		    segment);
+		    
+                _gl.DrawElements(
+                    PrimitiveType.Triangles,
+                    6,
+                    DrawElementsType.UnsignedInt,
+                    (void*)0);
+            }
         }
 
         private static void KeyDown(IKeyboard keyboard, Key key, int keyCode)
