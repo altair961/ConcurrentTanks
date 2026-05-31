@@ -26,6 +26,8 @@ namespace ConcurrentTanks.Client
         private static bool _moveUp;
         private static bool _moveDown;
         private static int _segmentIndexLocation;
+	    private static int _trackOffset;
+        private static int _trackOffsetLocation;
 
         static void Main(string[] args)
         {
@@ -118,12 +120,16 @@ void main()
 #version 330 core
 
 uniform int segmentIndex;
+uniform int trackOffset;
 
 out vec4 out_color;
 
 void main()
 {   
-    if (segmentIndex % 2 == 0)
+    bool grey =
+        ((segmentIndex + trackOffset) % 2) == 0;
+
+    if (grey)
     {
         out_color = vec4(0.5, 0.5, 0.5, 1.0);
     }
@@ -171,6 +177,11 @@ void main()
                     _program,
                     "segmentIndex");
 
+            _trackOffsetLocation =
+                _gl.GetUniformLocation(
+                    _program,
+                    "trackOffset");
+
             _gl.GetProgram(_program, ProgramPropertyARB.LinkStatus, out int lStatus);
             if (lStatus != (int) GLEnum.True)
                 throw new Exception("Program failed to link: " + _gl.GetProgramInfoLog(_program));
@@ -207,6 +218,14 @@ void main()
 
             if (_moveDown)
                 _tankY += speed * (float)deltaTime;
+
+            if (_moveLeft ||
+                _moveRight ||
+                _moveUp ||
+                _moveDown)
+            {
+                _trackOffset++;
+            }
         }
 
         private static unsafe void OnRender(double deltaTime)
@@ -225,6 +244,10 @@ void main()
             }
 
             _gl.BindVertexArray(_vao);
+            
+            _gl.Uniform1(
+                _trackOffsetLocation,
+                _trackOffset);
 
             for (int segment = 0; segment < 10; segment++)
             {
@@ -243,10 +266,10 @@ void main()
                         p);
                 }
 
-		_gl.Uniform1(
-		    _segmentIndexLocation,
-		    segment);
-		    
+                _gl.Uniform1(
+                    _segmentIndexLocation,
+                    segment);
+
                 _gl.DrawElements(
                     PrimitiveType.Triangles,
                     6,
