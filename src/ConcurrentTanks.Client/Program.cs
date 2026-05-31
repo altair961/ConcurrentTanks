@@ -261,6 +261,39 @@ void main()
                     0f);
                     
             DrawRectangle(verticalHullModel);
+
+            var turretModel =
+                Matrix4x4.CreateScale(
+                    5f,
+                    6f,
+                    1f)
+                *
+                Matrix4x4.CreateTranslation(
+                    _tankX + 22f,
+                    _tankY + 20f,
+                    0f);
+
+            _gl.Uniform4(
+                _objectColorLocation,
+                0.9f,
+                0.9f,
+                0.9f,
+                1f);
+
+            DrawRectangle(turretModel);
+
+            var gunBarrelModel =
+                Matrix4x4.CreateScale(
+                    1f,
+                    6f,
+                    1f)
+                *
+                Matrix4x4.CreateTranslation(
+                    _tankX + 22f,
+                    _tankY + 0f,
+                    0f);
+
+            DrawRectangle(gunBarrelModel);
         }
 
         private static void DrawTrack(float tankX, float tankY, int trackOffset)
