@@ -71,10 +71,10 @@ namespace ConcurrentTanks.Client
 
             float[] vertices =
             {
-                -30f, 30f, 0f, // bottom left
-                30f, 30f, 0f, // bottom right
-                30f, -30f, 0f, // top right
-                -30f, -30f, 0f // top left
+                -6f,  2f, 0f, // bottom left
+                6f,  2f, 0f, // bottom right
+                6f, -2f, 0f, // top right
+                -6f, -2f, 0f // top left
             };
             
             _vbo = _gl.GenBuffer();
@@ -179,19 +179,19 @@ void main()
 
         private static void OnUpdate(double deltaTime)
         {
-                float speed = 200f;
+            float speed = 200f;
 
-                if (_moveLeft)
-                    _tankX -= speed * (float)deltaTime;
+            if (_moveLeft)
+                _tankX -= speed * (float)deltaTime;
 
-                if (_moveRight)
-                    _tankX += speed * (float)deltaTime;
+            if (_moveRight)
+                _tankX += speed * (float)deltaTime;
 
-                if (_moveUp)
-                    _tankY -= speed * (float)deltaTime;
+            if (_moveUp)
+                _tankY -= speed * (float)deltaTime;
 
-                if (_moveDown)
-                    _tankY += speed * (float)deltaTime;
+            if (_moveDown)
+                _tankY += speed * (float)deltaTime;
         }
 
         private static unsafe void OnRender(double deltaTime)
