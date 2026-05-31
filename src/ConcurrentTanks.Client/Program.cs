@@ -19,9 +19,6 @@ namespace ConcurrentTanks.Client
         private static int _projectionLocation;
         private static float _tankX = 450f;
         private static float _tankY = 450f;
-        private static Matrix4x4 _segmentModel;
-        private static Matrix4x4 _horizontalHullModel;
-        private static Matrix4x4 _verticalHullModel;
         private static int _modelLocation;
         private static bool _moveLeft;
         private static bool _moveRight;
@@ -32,7 +29,7 @@ namespace ConcurrentTanks.Client
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello, World 2!");
+            Console.WriteLine("Launch the game");
 
             WindowOptions options = WindowOptions.Default with
             {
@@ -229,7 +226,10 @@ void main()
 
             _gl.BindVertexArray(_vao);
 
-            _horizontalHullModel =
+            DrawTrack(_tankX, _tankY, _trackOffset);
+            DrawTrack(_tankX + 44f, _tankY, _trackOffset);
+
+            var horizontalHullModel =
                 Matrix4x4.CreateScale(
                     8f,
                     4f,
@@ -247,9 +247,9 @@ void main()
                 1f,
                 1f);
 
-            DrawRectangle(_horizontalHullModel);
+            DrawRectangle(horizontalHullModel);
 
-            _verticalHullModel = 
+            var verticalHullModel = 
                 Matrix4x4.CreateScale(
                     6f,
                     8f,
@@ -260,23 +260,26 @@ void main()
                     _tankY + 20f,
                     0f);
                     
-            DrawRectangle(_verticalHullModel);
+            DrawRectangle(verticalHullModel);
+        }
 
+        private static void DrawTrack(float tankX, float tankY, int trackOffset)
+        {
             for (int segment = 0; segment < 10; segment++)
             {
-                _segmentModel =
+                var segmentModel =
                     Matrix4x4.CreateScale(
                         3f,
                         1f,
                         1f)
                     *
                     Matrix4x4.CreateTranslation(
-                        _tankX,
-                        _tankY + segment * 4f,
+                        tankX,
+                        tankY + segment * 4f,
                         0f);
 
                 bool grey =
-                    ((segment + _trackOffset) % 2) == 0;
+                    ((segment + trackOffset) % 2) == 0;
 
                 if (grey)
                 {
@@ -297,7 +300,7 @@ void main()
                         1f);
                 }
 
-                DrawRectangle(_segmentModel);
+                DrawRectangle(segmentModel);
             }
         }
 
