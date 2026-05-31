@@ -19,15 +19,16 @@ namespace ConcurrentTanks.Client
         private static int _projectionLocation;
         private static float _tankX = 450f;
         private static float _tankY = 450f;
-        private static Matrix4x4 _model;
+        private static Matrix4x4 _segmentModel;
+        private static Matrix4x4 _horizontalHullModel;
+        private static Matrix4x4 _verticalHullModel;
         private static int _modelLocation;
         private static bool _moveLeft;
         private static bool _moveRight;
         private static bool _moveUp;
         private static bool _moveDown;
-        private static int _segmentIndexLocation;
+        private static int _objectColorLocation;
 	    private static int _trackOffset;
-        private static int _trackOffsetLocation;
 
         static void Main(string[] args)
         {
@@ -74,10 +75,10 @@ namespace ConcurrentTanks.Client
 
             float[] vertices =
             {
-                -6f,  2f, 0f, // bottom left
-                6f,  2f, 0f, // bottom right
-                6f, -2f, 0f, // top right
-                -6f, -2f, 0f // top left
+                -2f,  2f, 0f, // bottom left
+                2f,  2f, 0f, // bottom right
+                2f, -2f, 0f, // top right
+                -2f, -2f, 0f // top left
             };
             
             _vbo = _gl.GenBuffer();
@@ -119,24 +120,12 @@ void main()
         const string fragmentCode = @"
 #version 330 core
 
-uniform int segmentIndex;
-uniform int trackOffset;
-
+uniform vec4 objectColor;
 out vec4 out_color;
 
 void main()
 {   
-    bool grey =
-        ((segmentIndex + trackOffset) % 2) == 0;
-
-    if (grey)
-    {
-        out_color = vec4(0.5, 0.5, 0.5, 1.0);
-    }
-    else
-    {
-        out_color = vec4(1.0, 1.0, 1.0, 1.0);
-    }
+    out_color = objectColor;
 }";
 
             uint vertexShader = _gl.CreateShader(ShaderType.VertexShader);
@@ -172,15 +161,10 @@ void main()
             _modelLocation =
                 _gl.GetUniformLocation(_program, "model");
 
-            _segmentIndexLocation =
+            _objectColorLocation =
                 _gl.GetUniformLocation(
                     _program,
-                    "segmentIndex");
-
-            _trackOffsetLocation =
-                _gl.GetUniformLocation(
-                    _program,
-                    "trackOffset");
+                    "objectColor");
 
             _gl.GetProgram(_program, ProgramPropertyARB.LinkStatus, out int lStatus);
             if (lStatus != (int) GLEnum.True)
@@ -244,38 +228,95 @@ void main()
             }
 
             _gl.BindVertexArray(_vao);
+
+            _horizontalHullModel =
+                Matrix4x4.CreateScale(
+                    8f,
+                    4f,
+                    1f)
+                *
+                Matrix4x4.CreateTranslation(
+                    _tankX + 22f,
+                    _tankY + 22f,
+                    0f);
             
-            _gl.Uniform1(
-                _trackOffsetLocation,
-                _trackOffset);
+            _gl.Uniform4(
+                _objectColorLocation,
+                1f,
+                1f,
+                1f,
+                1f);
+
+            DrawRectangle(_horizontalHullModel);
+
+            _verticalHullModel = 
+                Matrix4x4.CreateScale(
+                    6f,
+                    8f,
+                    1f)
+                *
+                Matrix4x4.CreateTranslation(
+                    _tankX + 22f,
+                    _tankY + 20f,
+                    0f);
+                    
+            DrawRectangle(_verticalHullModel);
 
             for (int segment = 0; segment < 10; segment++)
             {
-                _model =
+                _segmentModel =
+                    Matrix4x4.CreateScale(
+                        3f,
+                        1f,
+                        1f)
+                    *
                     Matrix4x4.CreateTranslation(
                         _tankX,
                         _tankY + segment * 4f,
                         0f);
-                
-                fixed (float* p = &_model.M11)
+
+                bool grey =
+                    ((segment + _trackOffset) % 2) == 0;
+
+                if (grey)
                 {
-                    _gl.UniformMatrix4(
-                        _modelLocation,
-                        1,
-                        false,
-                        p);
+                    _gl.Uniform4(
+                        _objectColorLocation,
+                        0.5f,
+                        0.5f,
+                        0.5f,
+                        1f);
+                }
+                else
+                {
+                    _gl.Uniform4(
+                        _objectColorLocation,
+                        1f,
+                        1f,
+                        1f,
+                        1f);
                 }
 
-                _gl.Uniform1(
-                    _segmentIndexLocation,
-                    segment);
-
-                _gl.DrawElements(
-                    PrimitiveType.Triangles,
-                    6,
-                    DrawElementsType.UnsignedInt,
-                    (void*)0);
+                DrawRectangle(_segmentModel);
             }
+        }
+
+        private static unsafe void DrawRectangle(in Matrix4x4 model)
+        {
+            fixed (float* p = &model.M11)
+            {
+                _gl.UniformMatrix4(
+                    _modelLocation,
+                    1,
+                    false,
+                    p);
+            }
+
+            _gl.DrawElements(
+                PrimitiveType.Triangles,
+                6,
+                DrawElementsType.UnsignedInt,
+                (void*)0);
         }
 
         private static void KeyDown(IKeyboard keyboard, Key key, int keyCode)
