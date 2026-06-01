@@ -20,8 +20,8 @@ namespace ConcurrentTanks.Client
         private static float _tankX = 450f;
         private static float _tankY = 450f;
         private static int _modelLocation;
-        private static bool _moveLeft;
-        private static bool _moveRight;
+        private static bool _rotateLeft;
+        private static bool _rotateRight;
         private static bool _moveUp;
         private static bool _moveDown;
         private static int _objectColorLocation;
@@ -188,12 +188,13 @@ void main()
         private static void OnUpdate(double deltaTime)
         {
             float speed = 200f;
+            float rotationSpeed = 2f;
 
-            if (_moveLeft)
-                _tankX -= speed * (float)deltaTime;
+            if (_rotateLeft)
+                _tankRotation -= rotationSpeed * (float)deltaTime;
 
-            if (_moveRight)
-                _tankX += speed * (float)deltaTime;
+            if (_rotateRight)
+                _tankRotation += rotationSpeed * (float)deltaTime;
 
             if (_moveUp)
                 _tankY -= speed * (float)deltaTime;
@@ -201,8 +202,8 @@ void main()
             if (_moveDown)
                 _tankY += speed * (float)deltaTime;
 
-            if (_moveLeft ||
-                _moveRight ||
+            if (_rotateLeft ||
+                _rotateRight ||
                 _moveUp ||
                 _moveDown)
             {
@@ -218,23 +219,19 @@ void main()
 
             fixed (float* p = &_projection.M11)
             {
-                _gl.UniformMatrix4(
-                    _projectionLocation,
-                    1,
-                    false,
-                    p);
+                _gl.UniformMatrix4(_projectionLocation, 1, false, p);
             }
 
-            _gl.BindVertexArray(_vao);        
+            _gl.BindVertexArray(_vao);
 
             var tankTransform =
                 Matrix4x4.CreateRotationZ(_tankRotation) *
                 Matrix4x4.CreateTranslation(_tankX, _tankY, 0f);
 
-            var leftTrackTransform = Matrix4x4.CreateTranslation(-22f, -20f, 0f) * tankTransform;
+            var leftTrackTransform = Matrix4x4.CreateTranslation(-22f, 0f, 0f) * tankTransform;
             DrawTrack(leftTrackTransform, _trackOffset);
 
-            var rightTrackTransform = Matrix4x4.CreateTranslation(+22f, -20f, 0f) * tankTransform;
+            var rightTrackTransform = Matrix4x4.CreateTranslation(22f, 0f, 0f) * tankTransform;
             DrawTrack(rightTrackTransform, _trackOffset);
 
             var horizontalHullModel = Matrix4x4.CreateScale(8f, 4f, 1f) * tankTransform;
@@ -243,7 +240,6 @@ void main()
 
             var verticalHullModel = Matrix4x4.CreateScale(6f, 8f, 1f) * tankTransform;
             DrawRectangle(verticalHullModel);
-                    
             
             _gl.Uniform4(_objectColorLocation, 0.9f, 0.9f, 0.9f, 1f);
 
@@ -261,7 +257,7 @@ void main()
             {
                 var segmentModel =
                     Matrix4x4.CreateScale(3f, 1f, 1f) *
-                    Matrix4x4.CreateTranslation(0, segment * 4f, 0f) *
+                    Matrix4x4.CreateTranslation(0, segment * 4f - 18f, 0f) *
                     tankTransform;
 
                 bool grey = ((segment + trackOffset) % 2) == 0;
@@ -295,10 +291,10 @@ void main()
                 _moveDown = true;
 
             if (key == Key.A)
-                _moveLeft = true;
+                _rotateLeft = true;
 
             if (key == Key.D)
-                _moveRight = true;
+                _rotateRight = true;
         }
 
         private static void KeyUp(IKeyboard keyboard, Key key, int keyCode)
@@ -310,10 +306,10 @@ void main()
                 _moveDown = false;
 
             if (key == Key.A)
-                _moveLeft = false;
+                _rotateLeft = false;
 
             if (key == Key.D)
-                _moveRight = false;
+                _rotateRight = false;
         }
     }
 }
