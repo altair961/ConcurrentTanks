@@ -12,3 +12,7 @@ W – Move forward
 S – Move backward
 A – Rotate left
 D – Rotate right
+
+<p align="center">
+  <img src="ConcurrentTanks.png" width="350"/>
+</p>
