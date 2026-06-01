@@ -26,6 +26,7 @@ namespace ConcurrentTanks.Client
         private static bool _moveDown;
         private static int _objectColorLocation;
 	    private static int _trackOffset;
+        private static float _tankRotation;
 
         static void Main(string[] args)
         {
@@ -224,10 +225,10 @@ void main()
                     p);
             }
 
-            _gl.BindVertexArray(_vao);
+            _gl.BindVertexArray(_vao);        
 
-            DrawTrack(_tankX, _tankY, _trackOffset);
-            DrawTrack(_tankX + 44f, _tankY, _trackOffset);
+            DrawTrack(_tankX - 22f, _tankY - 20f, _trackOffset);
+            DrawTrack(_tankX + 22f, _tankY - 20f, _trackOffset);
 
             var horizontalHullModel =
                 Matrix4x4.CreateScale(
@@ -236,8 +237,8 @@ void main()
                     1f)
                 *
                 Matrix4x4.CreateTranslation(
-                    _tankX + 22f,
-                    _tankY + 22f,
+                    _tankX,
+                    _tankY,
                     0f);
             
             _gl.Uniform4(
@@ -256,31 +257,18 @@ void main()
                     1f)
                 *
                 Matrix4x4.CreateTranslation(
-                    _tankX + 22f,
-                    _tankY + 20f,
+                    _tankX,
+                    _tankY,
                     0f);
                     
             DrawRectangle(verticalHullModel);
-
-            var turretModel =
-                Matrix4x4.CreateScale(
-                    5f,
-                    6f,
-                    1f)
-                *
-                Matrix4x4.CreateTranslation(
-                    _tankX + 22f,
-                    _tankY + 20f,
-                    0f);
-
+            
             _gl.Uniform4(
                 _objectColorLocation,
                 0.9f,
                 0.9f,
                 0.9f,
                 1f);
-
-            DrawRectangle(turretModel);
 
             var gunBarrelModel =
                 Matrix4x4.CreateScale(
@@ -289,11 +277,55 @@ void main()
                     1f)
                 *
                 Matrix4x4.CreateTranslation(
-                    _tankX + 22f,
-                    _tankY + 0f,
+                    _tankX,
+                    _tankY - 15f,
                     0f);
 
             DrawRectangle(gunBarrelModel);
+
+            var turretModel =
+                Matrix4x4.CreateScale(
+                    5f,
+                    6f,
+                    1f)
+                *
+                Matrix4x4.CreateTranslation(
+                    _tankX,
+                    _tankY,
+                    0f);
+
+            DrawRectangle(turretModel);
+
+            var tankTransform =
+                Matrix4x4.CreateRotationZ(_tankRotation)
+                *
+                Matrix4x4.CreateTranslation(
+                    _tankX,
+                    _tankY,
+                    0f);
+                    
+            var _tankTransform =
+                Matrix4x4.CreateTranslation(
+                    _tankX,
+                    _tankY,
+                    0f);
+
+            _gl.Uniform4(
+                _objectColorLocation,
+                1f,
+                0f,
+                0f,
+                1f);
+
+            var markerModel =
+                Matrix4x4.CreateScale(
+                    0.5f,
+                    0.5f,
+                    1f)
+                *
+                tankTransform;
+
+            DrawRectangle(markerModel);
         }
 
         private static void DrawTrack(float tankX, float tankY, int trackOffset)
