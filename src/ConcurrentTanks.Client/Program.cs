@@ -189,6 +189,7 @@ void main()
         {
             float speed = 200f;
             float rotationSpeed = 2f;
+            var forward = GetForward();
 
             if (_rotateLeft)
                 _tankRotation -= rotationSpeed * (float)deltaTime;
@@ -197,10 +198,16 @@ void main()
                 _tankRotation += rotationSpeed * (float)deltaTime;
 
             if (_moveUp)
-                _tankY -= speed * (float)deltaTime;
+            {
+                _tankX += forward.X * speed * (float)deltaTime;
+                _tankY += forward.Y * speed * (float)deltaTime;
+            }
 
             if (_moveDown)
-                _tankY += speed * (float)deltaTime;
+            {
+                _tankX -= forward.X * speed * (float)deltaTime;
+                _tankY -= forward.Y * speed * (float)deltaTime;
+            }
 
             if (_rotateLeft ||
                 _rotateRight ||
@@ -310,6 +317,12 @@ void main()
 
             if (key == Key.D)
                 _rotateRight = false;
+        }
+
+        private static Vector2 GetForward()
+        {
+            return new Vector2(MathF.Sin(_tankRotation),
+                -MathF.Cos(_tankRotation));
         }
     }
 }
