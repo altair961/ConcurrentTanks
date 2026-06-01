@@ -227,143 +227,49 @@ void main()
 
             _gl.BindVertexArray(_vao);        
 
-            DrawTrack(_tankX - 22f, _tankY - 20f, _trackOffset);
-            DrawTrack(_tankX + 22f, _tankY - 20f, _trackOffset);
+            var tankTransform =
+                Matrix4x4.CreateRotationZ(_tankRotation) *
+                Matrix4x4.CreateTranslation(_tankX, _tankY, 0f);
 
-            var horizontalHullModel =
-                Matrix4x4.CreateScale(
-                    8f,
-                    4f,
-                    1f)
-                *
-                Matrix4x4.CreateTranslation(
-                    _tankX,
-                    _tankY,
-                    0f);
-            
-            _gl.Uniform4(
-                _objectColorLocation,
-                1f,
-                1f,
-                1f,
-                1f);
+            var leftTrackTransform = Matrix4x4.CreateTranslation(-22f, -20f, 0f) * tankTransform;
+            DrawTrack(leftTrackTransform, _trackOffset);
 
+            var rightTrackTransform = Matrix4x4.CreateTranslation(+22f, -20f, 0f) * tankTransform;
+            DrawTrack(rightTrackTransform, _trackOffset);
+
+            var horizontalHullModel = Matrix4x4.CreateScale(8f, 4f, 1f) * tankTransform;
+            _gl.Uniform4(_objectColorLocation, 1f, 1f, 1f, 1f);
             DrawRectangle(horizontalHullModel);
 
-            var verticalHullModel = 
-                Matrix4x4.CreateScale(
-                    6f,
-                    8f,
-                    1f)
-                *
-                Matrix4x4.CreateTranslation(
-                    _tankX,
-                    _tankY,
-                    0f);
-                    
+            var verticalHullModel = Matrix4x4.CreateScale(6f, 8f, 1f) * tankTransform;
             DrawRectangle(verticalHullModel);
+                    
             
-            _gl.Uniform4(
-                _objectColorLocation,
-                0.9f,
-                0.9f,
-                0.9f,
-                1f);
+            _gl.Uniform4(_objectColorLocation, 0.9f, 0.9f, 0.9f, 1f);
 
-            var gunBarrelModel =
-                Matrix4x4.CreateScale(
-                    1f,
-                    6f,
-                    1f)
-                *
-                Matrix4x4.CreateTranslation(
-                    _tankX,
-                    _tankY - 15f,
-                    0f);
-
+            var gunBarrelModel = Matrix4x4.CreateScale(1f, 6f, 1f) * 
+                Matrix4x4.CreateTranslation(0f, -15f, 0f) * tankTransform;
             DrawRectangle(gunBarrelModel);
 
-            var turretModel =
-                Matrix4x4.CreateScale(
-                    5f,
-                    6f,
-                    1f)
-                *
-                Matrix4x4.CreateTranslation(
-                    _tankX,
-                    _tankY,
-                    0f);
-
+            var turretModel = Matrix4x4.CreateScale(5f, 6f, 1f) * tankTransform;
             DrawRectangle(turretModel);
-
-            var tankTransform =
-                Matrix4x4.CreateRotationZ(_tankRotation)
-                *
-                Matrix4x4.CreateTranslation(
-                    _tankX,
-                    _tankY,
-                    0f);
-                    
-            var _tankTransform =
-                Matrix4x4.CreateTranslation(
-                    _tankX,
-                    _tankY,
-                    0f);
-
-            _gl.Uniform4(
-                _objectColorLocation,
-                1f,
-                0f,
-                0f,
-                1f);
-
-            var markerModel =
-                Matrix4x4.CreateScale(
-                    0.5f,
-                    0.5f,
-                    1f)
-                *
-                tankTransform;
-
-            DrawRectangle(markerModel);
         }
 
-        private static void DrawTrack(float tankX, float tankY, int trackOffset)
+        private static void DrawTrack(Matrix4x4 tankTransform, int trackOffset)
         {
             for (int segment = 0; segment < 10; segment++)
             {
                 var segmentModel =
-                    Matrix4x4.CreateScale(
-                        3f,
-                        1f,
-                        1f)
-                    *
-                    Matrix4x4.CreateTranslation(
-                        tankX,
-                        tankY + segment * 4f,
-                        0f);
+                    Matrix4x4.CreateScale(3f, 1f, 1f) *
+                    Matrix4x4.CreateTranslation(0, segment * 4f, 0f) *
+                    tankTransform;
 
-                bool grey =
-                    ((segment + trackOffset) % 2) == 0;
+                bool grey = ((segment + trackOffset) % 2) == 0;
 
                 if (grey)
-                {
-                    _gl.Uniform4(
-                        _objectColorLocation,
-                        0.5f,
-                        0.5f,
-                        0.5f,
-                        1f);
-                }
+                    _gl.Uniform4(_objectColorLocation, 0.5f, 0.5f, 0.5f, 1f);
                 else
-                {
-                    _gl.Uniform4(
-                        _objectColorLocation,
-                        1f,
-                        1f,
-                        1f,
-                        1f);
-                }
+                    _gl.Uniform4(_objectColorLocation, 1f, 1f, 1f, 1f);
 
                 DrawRectangle(segmentModel);
             }
@@ -372,19 +278,9 @@ void main()
         private static unsafe void DrawRectangle(in Matrix4x4 model)
         {
             fixed (float* p = &model.M11)
-            {
-                _gl.UniformMatrix4(
-                    _modelLocation,
-                    1,
-                    false,
-                    p);
-            }
+                _gl.UniformMatrix4(_modelLocation, 1, false, p);
 
-            _gl.DrawElements(
-                PrimitiveType.Triangles,
-                6,
-                DrawElementsType.UnsignedInt,
-                (void*)0);
+            _gl.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, (void*)0);
         }
 
         private static void KeyDown(IKeyboard keyboard, Key key, int keyCode)
